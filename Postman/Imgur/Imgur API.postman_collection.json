@@ -1,0 +1,670 @@
+{
+	"info": {
+		"_postman_id": "7e7b9a3e-799a-4f7f-88da-b9bf2f80c223",
+		"name": "Imgur API",
+		"description": "![image](https://i.imgur.com/n744BL9.png)\n\n## API Status\nStatus for the API can be found at [status.imgur.com](http://status.imgur.com)!\n\n## Getting Started\nImgur's API exposes the entire Imgur infrastructure via a standardized programmatic interface. Using Imgur's API, you can do just about anything you can do on imgur.com, while using your programming language of choice. The Imgur API is a RESTful API based on HTTP requests and JSON responses.\n\nThis version of the API, version 3, uses OAuth 2.0. This means that all requests will need to be encrypted and sent via HTTPS. It also means that you need to register your application, even if you aren't allowing users to login.\n\nThe easiest way to start using the Imgur API is by clicking the **Run in Postman** button above. [Postman](https://www.getpostman.com/) is a free tool which helps developers run and debug API requests, and is the source of truth for this documentation. Every endpoint you see documented here is readily available by running our Postman collection. \n\n## Example code\nThese examples serve as a starting point to help familiarize you with the basics of the Imgur API.\n* [Official Python library](https://github.com/Imgur/imgurpython)\n* [Android Upload Example](https://github.com/AKiniyalocts/imgur-android)\n* [Older Example Android app](https://github.com/talklittle/ImgurAPIv3ExampleAndroid)\n* [Example HTML5/JavaScript app](https://github.com/eirikb/gifie) - [Javascript OAuth](https://gist.github.com/eirikb/7404666)—[Live Demo](http://eirikb.github.io/gifie/) (uses your webcam)\n* [Example Objective C library](https://github.com/geoffmacd/ImgurSession)\n\n## Need help?\nThe Imgur engineers are always around answering questions. The quickest way to get help is by posting your question on StackOverflow with the [Imgur tag](https://stackoverflow.com/questions/tagged/imgur).\n\n## Register an Application (IMPORTANT)\nEach client must register their application and receive the `client_id` and `client_secret`.\n\nFor public read-only and anonymous resources, such as getting image info, looking up user comments, etc. all you need to do is send an authorization header with your client_id in your requests. This also works if you'd like to upload images anonymously (without the image being tied to an account), or if you'd like to create an anonymous album. This lets us know which application is accessing the API.\n\n    Authorization: Client-ID <YOUR_CLIENT_ID>\n\n\n### Registration Quickstart\nIf you are just getting started, an easy way to explore the endpoints is by creating an application using following instructions below.\n\n1. Download [Postman](https://www.getpostman.com/) and click the **Run in Postman** button at the top of this page. This will load our collection of endpoints into Postman for easy debugging.\n2. [Register your application](https://api.imgur.com/oauth2/addclient) using the postman callback URL: `https://www.getpostman.com/oauth2/callback` ![Image](https://i.imgur.com/Ied42En.png)\n3. In Postman, under the main request builder panel, click the Authorization tab. Click the **Get New Access Token** button. Set **Auth URL** to `https://api.imgur.com/oauth2/authorize` and **Access Token URL** to `https://api.imgur.com/oauth2/token`. Add the **Client ID** and **Client Secret** you received from registering your application above, then click **Request Token** ![Image](https://i.imgur.com/iKHSGFD.png)\n4. After logging in and granting access to your application, you should receive a refresh token. ![Image](https://i.imgur.com/0dN8cyJ.png) Copy this refresh token, then click the gear icon in the top right of Postman. Click **Manage Environments** then **Add**, and add the `refreshToken`, `clientId`, and `clientSecret` fields as shown below ![Image](https://i.imgur.com/DaFV5ux.png)\n5. Inside the **Account** folder, run the **Generate Access Token** endpoint. The response you receive will give you an access token which will be valid for about a month. This token is automatically saved to your Postman environment via the JavaScript test for that endpoint as seen below. Whenever your token expires, just re-run this endpoint and a new token will be saved to your environment. ![Image](https://i.imgur.com/5Ed4RhP.png)\n6. Run any endpoint within the collection. You have authorized your app and logged in with your username, so you are now making authenticated requests against the Imgur API. Happy hacking!  \n\n## Commercial Usage\nYour application is commercial if you're making any money with it (which includes in-app advertising), if you plan on making any money with it, or if it belongs to a commercial organization.\n\nTo use Imgur's API commercially, you must first [register your application](https://api.imgur.com/oauth2/addclient). Once that's done, you must [register with RapidAPI](https://rapidapi.com/imgur/api/imgur-9). RapidAPI allows you to choose a pricing plan that fits your needs. From then on, the API endpoint is `https://imgur-apiv3.p.rapidapi.com/` which must be used in place of `https://api.imgur.com/`. Additionally, you must set a `X-Mashape-Key` request header with the key obtained from RapidAPI.\n\n## Free Usage\nThe Imgur API is free for non-commercial usage. Your application is probably free if you don't plan on making any money with it, or if it's open source.\n\n## Endpoints\nThe API is accessed by making HTTP requests to a specific version endpoint URL, in which GET or POST variables contain information about what you wish to access. Every endpoint is accessed via an SSL-enabled HTTPS (port 443), this is because everything is using OAuth 2.0.\n\nEverything (methods, parameters, etc.) is fixed to a version number, and every call must contain one. Different Versions are available at different endpoint URLs. The latest version is Version 3.\n\nThe stable HTTP endpoint for the latest version is:\n`https://api.imgur.com/3/`\n\n## Responses\nEach response is wrapped in a data tag. This means if you have a response, it will always be within the data field. We also include a status code and success flag in the response. For more information and examples go to the [data models](https://api.imgur.com/models) page.\n\nResponses are either JSON (the default), JSONP, or XML. Response formats are specified by supplying an extension to the API call. For example, if you want to access the gallery information with JSON:\n\n    https://api.imgur.com/3/gallery.json\n    \nJSONP responses are made by adding the callback parameter via either GET or POST to the request. For example:\n\n    https://api.imgur.com/3/gallery.json?callback=function_name\n    \nand to specify an XML response, the URL is:\n\n    https://api.imgur.com/3/gallery.xml\n    \n## Paging Results\nFor the most part, if the API action is plural, you can page it via a query string parameter.\n\nNOTE: /gallery endpoints do not support the perPage query string, and /album/{id}/images is not paged.\n\n| Query String Parameter | Required | Description                                                   |\n|------------------------|----------|---------------------------------------------------------------|\n| page                   | optional | Page number of the result set (default: 0)                    |\n| perPage                | optional | Limit the number of results per page. (default: 50, max: 100) |\n\nExample:\n\n    https://api.imgur.com/3/account/imgur/images/0.json?perPage=42&page=6\n    \n## Authentication\nThe API requires each client to use OAuth 2 authentication. This means you'll have to [register your application](https://api.imgur.com/oauth2/addclient), and generate an access_code if you'd like to log in as a user.\nFor public read-only and anonymous resources, such as getting image info, looking up user comments, etc. all you need to do is send an authorization header with your client_id in your requests. This also works if you'd like to upload images anonymously (without the image being tied to an account), or if you'd like to create an anonymous album. This lets us know which application is accessing the API.\n\n    Authorization: Client-ID <YOUR_CLIENT_ID>\n\nFor accessing a user's account, please visit the OAuth2 section of the docs.\nOAuth Endpoints\nTo access OAuth, the following endpoints must be used:\n\n    https://api.imgur.com/oauth2/addclient\n    https://api.imgur.com/oauth2/authorize\n    https://api.imgur.com/oauth2/token\n    \nYou can also verify your OAuth 2.0 tokens by setting your header and visiting the page \n\n    https://api.imgur.com/oauth2/secret\n    \n## Rate Limits\nThe Imgur API uses a credit allocation system to ensure fair distribution of capacity. Each application can allow *approximately 1,250 uploads per day or approximately 12,500 requests per day*. If the daily limit is hit five times in a month, then the app will be blocked for the rest of the month. The remaining credit limit will be shown with each requests response in the `X-RateLimit-ClientRemaining` HTTP header.\n\nWe also limit each user (via their IP Address) for each application, this is to ensure that no single user is able to spam an application. This limit will simply stop the user from requesting more data for an hour. We recommend that each application takes precautions against spamming by implementing rate limiting on their own applications. Each response will also include the remaining credits for each user in the `X-RateLimit-UserLimit` HTTP header.\n\nEach request contains rate limit information in the HTTP response headers.\n\n| HTTP Header                 | Description                                                       |\n|-----------------------------|-------------------------------------------------------------------|\n| X-RateLimit-UserLimit       | Total credits that can be allocated.                              |\n| X-RateLimit-UserRemaining   | Total credits available.                                          |\n| X-RateLimit-UserReset       | Timestamp (unix epoch) for when the credits will be reset.        |\n| X-RateLimit-ClientLimit     | Total credits that can be allocated for the application in a day. |\n| X-RateLimit-ClientRemaining | Total credits remaining for the application in a day.             |\n\nUnless otherwise noted, an API call deducts 1 credit from your allocation. However, uploads have a significantly higher computational cost on our back-end, and deduct 10 credits per call. All OAuth calls, such as refreshing tokens or authorizing users, do not deduct any credits.\nYou can also check the current rate limit status on your application by sending a GET request to \n\n    https://api.imgur.com/3/credits\n\nYour use of the Imgur API is also limited by the number of POST requests your IP can make across all endpoints. This limit is *1,250 POST requests per hour*. [Commercial Usage](http://api.imgur.com/#commercial) is not impacted by this limit. Each POST request will contain the following headers.\n\n| HTTP Header                 | Description                                        |\n|-----------------------------|----------------------------------------------------|\n| X-Post-Rate-Limit-Limit     | Total POST credits that are allocated.             |\n| X-Post-Rate-Limit-Remaining | Total POST credits available.                      |\n| X-Post-Rate-Limit-Reset     | Time in seconds until your POST ratelimit is reset |\n\n# Authorization and OAuth\n\n## OAuth 2.0 Overview\nThe Imgur API uses OAuth 2.0 for authentication. OAuth 2.0 has four steps: registration, authorization, making the request, and getting new access_tokens after the initial one expired.\n\n* [Registration](https://api.imgur.com/oauth2/addclient) gives you your `client_id` and `client_secret`, which is then used to authorize the user to your app.\n* Authorization is the process of the user saying \"I would like YourSuperAwesomeImgurApp to access my data\". YourSuperAwesomeImgurApp cannot access the user's account without them agreeing to it. After they agree, you will get refresh and access tokens.\n    * `access_token`: is your secret key used to access the user's data. It can be thought of the user's password and username combined into one, and is used to access the user's account. It expires after 1 month.\n    * `refresh_token`: is used to request new access_tokens. Since access_tokens expire after 1 month, we need a way to request new ones without going through the entire authorization step again. It does not expire.\n    * `authorization_code`: is used for obtaining the the access and refresh tokens. It's purpose is to be immediately exchanged for an access_token and refresh_token.\n    * Finally, after obtaining your access_token, you make your API requests by sending the Authorization header as such: \n    ```Authorization: Bearer YOUR_ACCESS_TOKEN```\n    \n* Registration\n\nEach client must register their application and receive the client_id and client_secret.\n\nFor public read-only and anonymous resources, such as getting image info, looking up user comments, etc. all you need to do is send an authorization header with your client_id in your requests. This also works if you'd like to upload images anonymously (without the image being tied to an account), or if you'd like to create an anonymous album. This lets us know which application is accessing the API.\n\n    Authorization: Client-ID YOUR_CLIENT_ID\n\n## Authorization\n\n> _NOTE:_ If your app is not only requesting public read-only information, then you may skip this step.\n\nTo access a user's account, the user must first authorize your application so that you can get an access token. Requesting an access token is fairly straightforward: point a browser (pop-up, or full page redirect if needed) to a URL and include a set of query string parameters.\n\n    https://api.imgur.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&response_type=REQUESTED_RESPONSE_TYPE&state=APPLICATION_STATE\n    \nThe user will now be able to enter their password and accept that they'd like to use your application. Once this happens, they will be redirected to your redirect URL (that you entered during registration) with the access token. You can now send the access token in the headers to access their account information.\n\n#### Forming the authorization URL\n\nAuthorization Endpoint: `https://api.imgur.com/oauth2/authorize`\n\n| Parameter     | Values                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |\n|---------------|----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|\n| response_type | `token`, `code`, or `pin`                    | _Only `token` should be used, as the other methods have been deprecated._ Determines if Imgur returns an access_token, authorization_code (_deprecated_), or a PIN code(_deprecated_). When using `token`, the `access_token` and `refresh_token` will be given to you in the form of query string parameters attached to your redirect URL, which the user may be able to read.                                                                                                                                          |\n| client_id     | the Client ID you recieved from registration | Indicates the client that is making the request.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |\n| state         | any string                                   | This optional parameter indicates any state which may be useful to your application upon receipt of the response. Imgur round-trips this parameter, so your application receives the same value it sent. Possible uses include redirecting the user to the correct resource in your site, nonces, and cross-site-request-forgery mitigations.                                                                                                                                                                             |\n\n#### The `response_type` Parameter\n\n`token`: This authorization flow will directly return the `access_token` and `refresh_token` via the redirect URL you specified during registration, in the form of hash query string parameters. Example: `http://example.com?access_token=ACCESS_TOKEN&token_type=Bearer&expires_in=3600`\n\nThe `code` and `pin` response types have been deprecated and will soon no longer be supported.\n\n### Handling the Authorization Response\n\nThe response will be sent to the redirect URL that was specified during registration. The contents and format of the response is determined by the value of the response_type parameter.\nYou're able to change your applications redirect URL at any time by accessing the ['apps' section of your account settings](http://imgur.com/account/settings/apps).\n\n#### JavaScript responses for the response_type: `token`\n\nImgur returns an access token to your application if the user grants your application the permissions it requested. The access token is returned to your application in the fragment as part of the `access_token` parameter. Since a fragment (the part of the URL after the `#`) is not sent to the server, client side javascript must parse the fragment and extract the value of the `access_token` parameter.\nOther parameters included in the response include `expires_in` and `token_type`. These parameters describe the lifetime of the token in seconds, and the kind of token that is being returned. If the `state` parameter was included in the request, then it is also included in the response.\nAn example User Agent flow response is shown below:\n\n    https://example.com/oauthcallback#access_token=ACCESS_TOKEN&token_type=Bearer&expires_in=3600\n    \nBelow is a JavaScript snippet that parses the response and returns the parameters to the server.\n\n```js\n// First, parse the query string\nvar params = {}, queryString = location.hash.substring(1),\n    regex = /([^&=]+)=([^&]*)/g, m;\nwhile (m = regex.exec(queryString)) {\n  params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);\n}\n\n// And send the token over to the server\nvar req = new XMLHttpRequest();\n// consider using POST so query isn't logged\nreq.open('GET', 'https://' + window.location.host + '/catchtoken?' + queryString, true);\n\nreq.onreadystatechange = function (e) {\n  if (req.readyState == 4) {\n     if(req.status == 200){\n       window.location = params['state']\n   }\n  else if(req.status == 400) {\n        alert('There was an error processing the token.')\n    }\n    else {\n      alert('something else other than 200 was returned')\n    }\n  }\n};\nreq.send(null);\n```\n\nThis code sends the parameters received on the fragment to the server using XMLHttpRequest and writes the access token to local storage in the browser. The latter is an optional step, and depends on whether or not the application requires other JavaScript code to make calls to the Imgur API. Also note that this code sends the parameters to the token endpoint, and they are sent over an HTTPS channel.\n\n#### Error Response\n\nThe Imgur API returns an error if the user did not grant your application the permissions it requested. The error is returned to the application in the query string parameter error if the web server flow is used. If the user agent flow was used, then the error is returned in the fragment. If the state parameter was included in the request, it is also present in the error response.\n\nAn example error response for the web server flow is shown below:\n\n    https://example.com/oauthcallback?error=access_denied\n    \n### Making your requests\nCongrats! You must have the user's access_token at this point and you're ready to start making API requests to their account. All that's required for this is to set the header in your requests:\n\n    Authorization: Bearer YOUR_ACCESS_TOKEN\n    \n### Refresh Tokens\n\nIf a user has authorized their account but you no longer have a valid access_token for them, then a new one can be generated by using the refresh_token.\n\nWhen your application receives a refresh token, it is important to store that refresh token for future use. If your application loses the refresh token, you will have to prompt the user for their login information again.\n\nTo obtain a new access token, your application performs a POST to `https://api.imgur.com/oauth2/token`. The request must include the following parameters to use a refresh token:\n\n| Field         | Description                                                                               |\n|---------------|-------------------------------------------------------------------------------------------|\n| refresh_token | The refresh token returned from the authorization code exchange                           |\n| client_id     | The client_id obtained during application registration                                    |\n| client_secret | The client secret obtained during application registration                                |\n| grant_type    | As defined in the OAuth2 specification, this field must contain a value of: `refresh_token` |\n\nAs long as the user has not revoked the access granted to your application, the response includes a new access token. A response from such a request is shown below:\n\n```json\n{\n    \"access_token\":\"5c3118ebb73fbb275945ab340be60b610a3216d6\",\n    \"refresh_token\":\"d36b474c95bb9ee54b992c7c34fffc2cc343d0a7\",\n    \"expires_in\":3600,\n    \"token_type\":\"Bearer\",\n    \"account_username\":\"saponifi3d\"\n}\n```\n\n### More OAuth 2 help and documentation\nFor more information about how to use OAuth 2, please visit the great documentation from Google. At the time of writing, our OAuth 2 server is completely compatible with theirs. The documentation may be found here: https://developers.google.com/accounts/docs/OAuth2\n\n\n\n# Performance Tips\nBelow are a few ways you can speed up your application's use of the Imgur API. \n\nIf you have any additional feature requests, please reach out on Twitter [@imgurAPI](https://twitter.com/imgurAPI)!\n\n### ETag Support\nThe Imgur API supports [ETags](http://en.wikipedia.org/wiki/HTTP_ETag), which allows the API to signal to developers whether or not data from previous queries have changed. \n\nUsage:\n1. When fetching from the Imgur API, the response header will include an ETag with a digest of the response data. Save this ETag value for future requests to the same route. \n\n    An example ETag response header: \n    \n    `ETag: \"a695f4e9672bf7fc7a779ac12ead684d72292506\"`\n1. On the next request to the same route, include a If-None-Match header in the request with the ETag from the first step. (Note: the quotations around the hash must be included) \n\n    An example ETag request header: \n    \n    `If-None-Match: \"a695f4e9672bf7fc7a779ac12ead684d72292506\"`\n1. If the data hasn't changed, the response status code will be *304* (Not Modified) and no data will be returned.\n1. If the response data has changed since the last request, the data is returned normally with a new ETag in the response header. Save this value for future requests.\n\n    *Note:* Although ETags help speed up your application, requests with the *If-None-Match* header will still count towards rate limits.\n\n# API Deprecation\n\nWhen an API endpoint is scheduled for deprecation the following actions will be taken: \n\n1. The endpoint documentation will be marked as deprececated and a migration plan will be added.\n1. The endpoint will have a `Sunset` header ([Sunset HTTP Header](https://tools.ietf.org/id/draft-wilde-sunset-header-03.html)) added to incidate the last date the endpoint should be relied upon. \n1. A email will be sent to active third party developers notifing of the deprecation.\n1. A entry to the API changelog table will be added.\n\nWhen the `Sunset` date has passed followup email will be sent to active third party developers notifing of the deprecation.\n\n## API Changelog\n\n| Date Introduced | Available Until | Endpoint                                                      |\n|-----------------|-----------------|---------------------------------------------------------------|\n||||\n\n## Additional Information\nIf you have questions that aren't answered here, the [support page](https://help.imgur.com/hc/en-us/requests/new) provides details on how to get help.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Images test",
+			"item": [
+				{
+					"name": "Image Upload",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// This endpoint is critical to the test flow, ",
+									"// so this stops the request cycle if any of these tests error.",
+									"pm.test(\"Status code is 200\", function () {pm.response.to.have.status(200);});",
+									"pm.test(\"Status is ok\", function () {pm.response.to.be.ok;});",
+									"pm.test(\"Response is json\", function () {pm.response.to.be.json;});",
+									"pm.test(\"Name is Years_later\", function () {pm.expect(JSON.parse(responseBody).data.name).to.eql(\"Years_later\");});",
+									"pm.test(\"Type is image/jpeg\", function () {pm.expect(JSON.parse(responseBody).data.type).to.eql(\"image/jpeg\");});",
+									"pm.test(\"Width is 4032\", function () {pm.expect(JSON.parse(responseBody).data.width).to.eql(4032);});",
+									"pm.test(\"Height is 3024\", function () {pm.expect(JSON.parse(responseBody).data.height).to.eql(3024);});",
+									"pm.test(\"Size is 1268584\", function () {pm.expect(JSON.parse(responseBody).data.size).to.eql(1268584);});",
+									"",
+									"postman.setNextRequest('end');",
+									"var image = JSON.parse(responseBody);",
+									"var imageHash = image.data.id;",
+									"var imageDeleteHash = image.data.deletehash;",
+									"tests['Returns 7 char alphanumeric id'] = /^[a-z0-9]{7}$/i.test(imageHash);",
+									"tests['Returns 15 char alhpanumeric deletehash'] = /^[a-z0-9]{15}$/i.test(imageDeleteHash);",
+									"",
+									"",
+									"postman.setEnvironmentVariable('imageHash', imageHash);",
+									"postman.setEnvironmentVariable('imageDeleteHash', imageDeleteHash);",
+									"",
+									"postman.setNextRequest('Account Images'); // Account -> Account Images"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientId",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Client-ID {{clientId}}",
+								"warning": "This is a duplicate header and will be overridden by the Authorization header generated by Postman."
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"description": "A binary file, base64 data, or a URL for an image. (up to 10MB)",
+									"type": "file",
+									"src": "/C:/Users/Serhiy/Desktop/geekbrains/Postman/Imgur/img/20190119_164652.jpg"
+								},
+								{
+									"key": "video",
+									"description": "A binary file (up to 200MB)",
+									"type": "file",
+									"src": [],
+									"disabled": true
+								},
+								{
+									"key": "album",
+									"value": "{{albumHash}}",
+									"description": "The id of the album you want to add the image to. For anonymous albums, album should be the deletehash that is returned at creation",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "url",
+									"description": "The type of the file that's being sent; file, base64 or URL",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "Years_later",
+									"description": "The name of the file, this is automatically detected if uploading a file with a POST and multipart / form-data",
+									"type": "text"
+								},
+								{
+									"key": "title",
+									"value": "Years_later",
+									"description": "The title of the image",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "This is an 1x1 pixel image.",
+									"description": "The description of the image",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "disable_audio",
+									"value": "1",
+									"description": "Will remove the audio track from a video file",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "https://api.imgur.com/3/upload",
+							"protocol": "https",
+							"host": [
+								"api",
+								"imgur",
+								"com"
+							],
+							"path": [
+								"3",
+								"upload"
+							]
+						},
+						"description": "Upload a new image or video.\n\n#### Accepted Video Formats\n| MIME Type        | \n|------------------|\n| video/mp4        |\n| video/webm       |\n| video/x-matroska |\n| video/quicktime  |\n| video/x-flv      |\n| video/x-msvideo  |\n| video/x-ms-wmv   |\n| video/mpeg       |"
+					},
+					"response": [
+						{
+							"name": "Sample Anonymous Upload",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Client-ID {{clientId}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"value": "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+											"type": "text"
+										},
+										{
+											"key": "album",
+											"value": "{{albumHash}}",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "title",
+											"value": "1x1 Pixel",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "description",
+											"value": "This is an 1x1 pixel image.",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "name",
+											"value": "pixel.gif",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "type",
+											"value": "gif",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "https://api.imgur.com/3/image",
+									"protocol": "https",
+									"host": [
+										"api",
+										"imgur",
+										"com"
+									],
+									"path": [
+										"3",
+										"image"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "Authorization, Content-Type, Accept, X-Mashape-Authorization, IMGURPLATFORM, IMGURUIDJAFO, SESSIONCOUNT, IMGURMWBETA, IMGURMWBETAOPTIN",
+									"name": "Access-Control-Allow-Headers",
+									"description": ""
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "GET, PUT, POST, DELETE, OPTIONS",
+									"name": "Access-Control-Allow-Methods",
+									"description": ""
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*",
+									"name": "Access-Control-Allow-Origin",
+									"description": ""
+								},
+								{
+									"key": "Access-Control-Expose-Headers",
+									"value": "X-RateLimit-ClientLimit, X-RateLimit-ClientRemaining, X-RateLimit-UserLimit, X-RateLimit-UserRemaining, X-RateLimit-UserReset",
+									"name": "Access-Control-Expose-Headers",
+									"description": ""
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+									"name": "Cache-Control",
+									"description": ""
+								},
+								{
+									"key": "Connection",
+									"value": "close",
+									"name": "Connection",
+									"description": ""
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip",
+									"name": "Content-Encoding",
+									"description": ""
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"name": "Content-Type",
+									"description": ""
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 23 May 2017 16:28:10 GMT",
+									"name": "Date",
+									"description": ""
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"f8e9f040e2b6ba2ebf5c836309b5cb50cf4b7368\"",
+									"name": "ETag",
+									"description": ""
+								},
+								{
+									"key": "Expires",
+									"value": "Thu, 19 Nov 1981 08:52:00 GMT",
+									"name": "Expires",
+									"description": ""
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache",
+									"name": "Pragma",
+									"description": ""
+								},
+								{
+									"key": "Server",
+									"value": "nginx",
+									"name": "Server",
+									"description": ""
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked",
+									"name": "Transfer-Encoding",
+									"description": ""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding",
+									"name": "Vary",
+									"description": ""
+								},
+								{
+									"key": "X-Post-Rate-Limit-Limit",
+									"value": "1250",
+									"name": "X-Post-Rate-Limit-Limit",
+									"description": ""
+								},
+								{
+									"key": "X-Post-Rate-Limit-Remaining",
+									"value": "1250",
+									"name": "X-Post-Rate-Limit-Remaining",
+									"description": ""
+								},
+								{
+									"key": "X-Post-Rate-Limit-Reset",
+									"value": "-2",
+									"name": "X-Post-Rate-Limit-Reset",
+									"description": ""
+								},
+								{
+									"key": "X-origin-ip",
+									"value": "172.16.2.228",
+									"name": "X-origin-ip",
+									"description": ""
+								}
+							],
+							"cookie": [
+								{
+									"expires": "Invalid Date",
+									"httpOnly": false,
+									"domain": "imgur.com",
+									"path": "/",
+									"secure": false,
+									"value": "259f1853850b21cb4df8bc5bd15b7884",
+									"key": "IMGURSESSION"
+								},
+								{
+									"expires": "Invalid Date",
+									"httpOnly": true,
+									"domain": "imgur.com",
+									"path": "/",
+									"secure": false,
+									"value": "1",
+									"key": "_nc"
+								},
+								{
+									"expires": "Invalid Date",
+									"httpOnly": false,
+									"domain": "api.imgur.com",
+									"path": "/",
+									"secure": false,
+									"value": "upload.i-054973f4f04ffec62.production",
+									"key": "UPSERVERID"
+								}
+							],
+							"body": "{\n  \"data\": {\n    \"id\": \"orunSTu\",\n    \"title\": null,\n    \"description\": null,\n    \"datetime\": 1495556889,\n    \"type\": \"image/gif\",\n    \"animated\": false,\n    \"width\": 1,\n    \"height\": 1,\n    \"size\": 42,\n    \"views\": 0,\n    \"bandwidth\": 0,\n    \"vote\": null,\n    \"favorite\": false,\n    \"nsfw\": null,\n    \"section\": null,\n    \"account_url\": null,\n    \"account_id\": 0,\n    \"is_ad\": false,\n    \"in_most_viral\": false,\n    \"tags\": [],\n    \"ad_type\": 0,\n    \"ad_url\": \"\",\n    \"in_gallery\": false,\n    \"deletehash\": \"x70po4w7BVvSUzZ\",\n    \"name\": \"\",\n    \"link\": \"http://i.imgur.com/orunSTu.gif\"\n  },\n  \"success\": true,\n  \"status\": 200\n}"
+						}
+					]
+				},
+				{
+					"name": "Bad request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {pm.response.to.have.status(400);});\r",
+									"pm.test(\"Status is Bad Request\", function () {pm.response.to.be.badRequest;});\r",
+									"pm.test(\"Response is json\", function () {pm.response.to.be.json;});\r",
+									"pm.test(\"Method is POST\", function () {pm.expect(JSON.parse(responseBody).data.method).to.eql(\"POST\");});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"value": "Forward comrades forward",
+									"description": "A binary file, base64 data, or a URL for an image. (up to 10MB)",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://api.imgur.com/3/upload",
+							"protocol": "https",
+							"host": [
+								"api",
+								"imgur",
+								"com"
+							],
+							"path": [
+								"3",
+								"upload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Image",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {pm.response.to.have.status(200);});\r",
+									"pm.test(\"Status is ok\", function () {pm.response.to.be.ok;});\r",
+									"pm.test(\"Response is json\", function () {pm.response.to.be.json;});\r",
+									"//pm.test(\"ID is BaGnRUo\", function () {pm.expect(JSON.parse(responseBody).data.id).to.eql(\"BaGnRUo\");});\r",
+									"pm.test(\"Title is Years_later\", function () {pm.expect(JSON.parse(responseBody).data.title).to.eql(\"Years_later\");});\r",
+									"pm.test(\"Description is Null\", function () {pm.expect(JSON.parse(responseBody).data.description).to.eql(null);});\r",
+									"pm.test(\"Type is image/jpeg\", function () {pm.expect(JSON.parse(responseBody).data.type).to.eql(\"image/jpeg\");});\r",
+									"pm.test(\"Width is 4032\", function () {pm.expect(JSON.parse(responseBody).data.width).to.eql(4032);});\r",
+									"pm.test(\"Height is 3024\", function () {pm.expect(JSON.parse(responseBody).data.height).to.eql(3024);});\r",
+									"pm.test(\"Size is 1268584\", function () {pm.expect(JSON.parse(responseBody).data.size).to.eql(1268584);});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{Client secret}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{Client ID}}",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Client-ID {{clientId}}"
+							}
+						],
+						"url": {
+							"raw": "https://api.imgur.com/3/image/{{imageHash}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"imgur",
+								"com"
+							],
+							"path": [
+								"3",
+								"image",
+								"{{imageHash}}"
+							]
+						},
+						"description": "Get information about an image."
+					},
+					"response": []
+				},
+				{
+					"name": "Image Deletion (Authed)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// This endpoint is critical to the test flow, ",
+									"// so this stops the request cycle if any of these tests error.",
+									"",
+									"",
+									"",
+									"pm.test(\"Status is ok\", function () {pm.response.to.be.ok;});",
+									"pm.test(\"Response is json\", function () {pm.response.to.be.json;});",
+									"postman.setNextRequest('end');",
+									"",
+									"var res = JSON.parse(responseBody);",
+									"",
+									"tests['Status code is 200'] = (responseCode.code === 200);",
+									"tests['Image deletion was success_data'] = res.success === true;",
+									"tests['Image deletion was success'] = res.data === true;",
+									"",
+									"postman.setNextRequest('end'); // stop running tests by setting next request to an invalid name / id"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{Client secret}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{Client ID}}",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://api.imgur.com/3/image/{{imageHash}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"imgur",
+								"com"
+							],
+							"path": [
+								"3",
+								"image",
+								"{{imageHash}}"
+							]
+						},
+						"description": "Deletes an image.\n\n#### Response Model: [Basic](https://api.imgur.com/models/basic)"
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "oauth2",
+				"oauth2": [
+					{
+						"key": "addTokenTo",
+						"value": "header",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "clientSecret",
+				"value": "{{Client secret}}",
+				"type": "string"
+			},
+			{
+				"key": "clientId",
+				"value": "{{Client ID}}",
+				"type": "string"
+			},
+			{
+				"key": "tokenName",
+				"value": "Test-project-Imgur",
+				"type": "string"
+			},
+			{
+				"key": "accessTokenUrl",
+				"value": "https://api.imgur.com/oauth2/token",
+				"type": "string"
+			},
+			{
+				"key": "authUrl",
+				"value": "https://api.imgur.com/oauth2/authorize",
+				"type": "string"
+			},
+			{
+				"key": "redirect_uri",
+				"value": "https://www.getpostman.com/oauth2/callback",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
